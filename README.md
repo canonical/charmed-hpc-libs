@@ -1,7 +1,7 @@
-# hpc-libs
+# charmed-hpc-libs
 
-[![hpc-libs tests](https://github.com/charmed-hpc/hpc-libs/actions/workflows/ci.yaml/badge.svg)](https://github.com/charmed-hpc/hpc-libs/actions/workflows/ci.yaml)
-![GitHub License](https://img.shields.io/github/license/charmed-hpc/hpc-libs)
+[![hpc-libs tests](https://github.com/canonical/charmed-hpc-libs/actions/workflows/ci.yaml/badge.svg)](https://github.com/canonical/charmed-hpc-libs/actions/workflows/ci.yaml)
+![GitHub License](https://img.shields.io/github/license/canonical/charmed-hpc-libs)
 [![Matrix](https://img.shields.io/matrix/ubuntu-hpc%3Amatrix.org?logo=matrix&label=ubuntu-hpc)](https://matrix.to/#/#hpc:ubuntu.com)
 
 A software development kit for authoring HPC charms 📖🖋️
@@ -23,8 +23,8 @@ If you want to learn more about all the things you can do with the charmed-hpc-l
 or have any further questions on what you can do with the package, here are some
 further resources for you to explore:
 
-* [Open an issue](https://github.com/charmed-hpc/charmed-hpc-libs/issues/new?title=ISSUE+TITLE&body=*Please+describe+your+issue*)
-* [Ask a question on Github](https://github.com/orgs/charmed-hpc/discussions/categories/q-a)
+* [Open an issue](https://github.com/canonical/charmed-hpc-libs/issues/new?title=ISSUE+TITLE&body=*Please+describe+your+issue*)
+* [Ask a question on Github](https://github.com/orgs/canonical/discussions/categories/q-a)
 
 ## 🛠️ Development
 
@@ -52,7 +52,7 @@ Here’s some links to help you get started with joining the community:
 * [Contributing guidelines](./CONTRIBUTING.md)
 * [Join the conversation on Matrix](https://matrix.to/#/#hpc:ubuntu.com)
 * [Get the latest news on Discourse](https://discourse.ubuntu.com/c/hpc/151)
-* [Ask and answer questions on GitHub](https://github.com/orgs/charmed-hpc/discussions/categories/q-a)
+* [Ask and answer questions on GitHub](https://github.com/orgs/canonical/discussions/categories/q-a)
 
 ## 📋 License
 

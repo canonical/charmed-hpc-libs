@@ -81,8 +81,8 @@ dev = [
 ]
 
 [project.urls]
-repository = "https://github.com/charmed-hpc/hpc-libs.git"
-issues = "https://github.com/charmed-hpc/hpc-libs/issues"
+repository = "https://github.com/canonical/charmed-hpc-libs.git"
+issues = "https://github.com/canonical/charmed-hpc-libs/issues"
 
 
 # Testing tools configuration
