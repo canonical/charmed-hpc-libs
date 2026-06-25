@@ -24,7 +24,7 @@ or have any further questions on what you can do with the package, here are some
 further resources for you to explore:
 
 * [Open an issue](https://github.com/canonical/charmed-hpc-libs/issues/new?title=ISSUE+TITLE&body=*Please+describe+your+issue*)
-* [Ask a question on Github](https://github.com/orgs/canonical/discussions/categories/q-a)
+* [Ask a question](https://discourse.ubuntu.com/c/project/hpc/151)
 
 ## 🛠️ Development
 
@@ -44,15 +44,14 @@ take a look at our [contributing guidelines](./CONTRIBUTING.md) for further deta
 ## 🤝 Project and community
 
 charmed-hpc-libs is a project of the [Ubuntu High-Performance Computing community](https://ubuntu.com/community/governance/teams/hpc).
-Interested in contributing bug fixes, new editors, documentation, or feedback? Want to join the Ubuntu HPC community? You’ve come to the right place 🤩
+Interested in contributing bug fixes, new editors, documentation, or feedback? Want to join the Ubuntu HPC community? You've come to the right place 🤩
 
-Here’s some links to help you get started with joining the community:
+Here's some links to help you get started with joining the community:
 
 * [Ubuntu Code of Conduct](https://ubuntu.com/community/ethos/code-of-conduct)
 * [Contributing guidelines](./CONTRIBUTING.md)
 * [Join the conversation on Matrix](https://matrix.to/#/#hpc:ubuntu.com)
-* [Get the latest news on Discourse](https://discourse.ubuntu.com/c/hpc/151)
-* [Ask and answer questions on GitHub](https://github.com/orgs/canonical/discussions/categories/q-a)
+* [Get the latest news or ask and answer questions on the Ubuntu Discourse](https://discourse.ubuntu.com/c/project/hpc/151)
 
 ## 📋 License
 
