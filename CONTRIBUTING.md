@@ -8,11 +8,11 @@ HPC project's contributing guide]. After you've gone through the main contributi
 you can use this guide for specific information on contributing to the `charmed-hpc-libs` repository.
 
 Have any questions? Feel free to ask them in the [Ubuntu High-Performance Computing Matrix chat]
-or on [GitHub Discussions].
+or in the [High-Performance Computing category on the Ubuntu Discourse].
 
 [Charmed HPC project's contributing guide]: https://github.com/canonical/hpc-team/blob/main/CONTRIBUTING.md
 [Ubuntu High-Performance Computing Matrix chat]: https://matrix.to/#/#hpc:ubuntu.com
-[GitHub Discussions]: https://github.com/orgs/canonical/discussions/categories/support
+[High-Performance Computing category on the Ubuntu Discourse]: https://discourse.ubuntu.com/c/project/hpc/151
 
 ## Hacking on `charmed-hpc-libs`
 
@@ -95,4 +95,3 @@ and you make changes to that file in 2025, update the copyright year in the file
 ```text
 Copyright 2023-2025 Canonical Ltd.
 ```
-
