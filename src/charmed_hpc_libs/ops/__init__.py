@@ -16,6 +16,7 @@
 
 __all__ = [
     # From `apt.py`
+    "AptLifecycleManager",
     "AptOpsManager",
     "apt",
     "dpkg_query",
@@ -69,6 +70,7 @@ from .core import OpsManager, ServiceManager, call
 from .env import EnvManager
 from .exporters import NodeExporterManager
 from .machine import (
+    AptLifecycleManager,
     AptOpsManager,
     DCGMManager,
     SnapConfigManager,
