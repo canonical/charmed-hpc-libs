@@ -195,6 +195,27 @@ class TestSnapOpsManager:
         assert ops_manager.is_installed() is expected
         mock_snap.assert_called_with("list", "slurm", check=False)
 
+    @pytest.mark.parametrize(
+        "mock_result,expected",
+        (
+            pytest.param((SNAP_INFO, 0), "23.11.7", id="installed"),
+            pytest.param((SNAP_INFO_NOT_INSTALLED, 1), None, id="not installed"),
+        ),
+    )
+    def test_version(self, ops_manager, mock_snap, mock_result, expected) -> None:
+        """Test the `version` method."""
+        mock_snap.return_value = mock_result
+        if expected is not None:
+            assert ops_manager.version() == expected
+            mock_snap.assert_called_with("info", "slurm")
+        else:
+            with pytest.raises(SnapError) as exec_info:
+                ops_manager.version()
+            assert exec_info.value.message == (
+                "unable to retrieve snap info. ensure slurm is correctly installed"
+            )
+            mock_snap.assert_called_with("info", "slurm")
+
 
 @pytest.mark.parametrize(
     "service_name_is_snap_name",
