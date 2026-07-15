@@ -18,7 +18,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "charmed-hpc-libs"
-version = "0.3.0"
+version = "0.4.0"
 requires-python = ">=3.12"
 description = "Collection of utilities to manage HPC related services."
 authors = [
