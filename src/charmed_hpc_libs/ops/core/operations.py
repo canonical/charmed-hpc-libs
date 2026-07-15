@@ -36,3 +36,7 @@ class OpsManager(Protocol):  # pragma: no cover
     @abstractmethod
     def remove(self) -> None:  # noqa D102
         raise NotImplementedError
+
+    @abstractmethod
+    def is_installed(self) -> bool:  # noqa D102
+        raise NotImplementedError

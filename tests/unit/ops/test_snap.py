@@ -182,6 +182,19 @@ class TestSnapOpsManager:
         ops_manager.connect("network-observe", service="snapd")
         mock_snap.assert_called_with("connect", "slurm:network-observe", "snapd")
 
+    @pytest.mark.parametrize(
+        "mock_return,expected",
+        (
+            pytest.param(("", 0), True, id="installed"),
+            pytest.param(("", 1), False, id="not installed"),
+        ),
+    )
+    def test_is_installed(self, ops_manager, mock_snap, mock_return, expected) -> None:
+        """Test the `is_installed` method."""
+        mock_snap.return_value = mock_return
+        assert ops_manager.is_installed() is expected
+        mock_snap.assert_called_with("list", "slurm", check=False)
+
 
 @pytest.mark.parametrize(
     "service_name_is_snap_name",
