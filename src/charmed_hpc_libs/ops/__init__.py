@@ -15,6 +15,10 @@
 """Libraries for building HPC charms."""
 
 __all__ = [
+    # From `apt.py`
+    "AptOpsManager",
+    "apt",
+    "dpkg_query",
     # From `conditions.py`
     "Condition",
     "ConditionEvaluation",
@@ -65,12 +69,15 @@ from .core import OpsManager, ServiceManager, call
 from .env import EnvManager
 from .exporters import NodeExporterManager
 from .machine import (
+    AptOpsManager,
     DCGMManager,
     SnapConfigManager,
     SnapLifecycleManager,
     SnapOpsManager,
     SnapServiceManager,
     SystemctlServiceManager,
+    apt,
+    dpkg_query,
     is_container,
     snap,
     systemctl,

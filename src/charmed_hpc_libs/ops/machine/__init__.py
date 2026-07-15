@@ -1,4 +1,4 @@
-# Copyright 2025 Canonical Ltd.
+# Copyright 2025-2026 Canonical Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,10 @@
 """Libraries for interfacing with machine resources."""
 
 __all__ = [
+    # From `apt.py`
+    "AptOpsManager",
+    "apt",
+    "dpkg_query",
     # From `nvidia.py`
     "DCGMManager",
     # From `snap.py`
@@ -29,6 +33,7 @@ __all__ = [
     "is_container",
 ]
 
+from .apt import AptOpsManager, apt, dpkg_query
 from .nvidia import DCGMManager
 from .snap import SnapConfigManager, SnapLifecycleManager, SnapOpsManager, SnapServiceManager, snap
 from .systemd import SystemctlServiceManager, is_container, systemctl

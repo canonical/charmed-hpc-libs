@@ -15,6 +15,7 @@
 """Errors raised by functions and methods in HPC charms."""
 
 __all__ = [
+    "AptError",
     "Error",
     "IngressAddressNotFoundError",
     "SnapError",
@@ -34,6 +35,10 @@ class Error(Exception):
 
 class IngressAddressNotFoundError(Error):
     """Error raised if a charm is unable to access its ingress address."""
+
+
+class AptError(Error):
+    """Error raised if an `apt`-related operation fails."""
 
 
 class SnapError(Error):
