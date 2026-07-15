@@ -196,6 +196,16 @@ class SnapOpsManager(OpsManager):
         _, exit_code = snap("list", self._snap, check=False)
         return exit_code == 0
 
+    def version(self) -> str:
+        """Get the version of the installed snap package."""
+        info = yaml.safe_load(snap("info", self._snap)[0])
+        version = info.get("installed")
+        if version is None:
+            raise SnapError(
+                f"unable to retrieve snap info. ensure {self._snap} is correctly installed"
+            )
+        return version.split(maxsplit=1)[0]
+
     def connect(self, plug: str, *, service: str | None = None, slot: str | None = None) -> None:
         """Connect a plug to a slot.
 
@@ -225,6 +235,7 @@ class SnapLifecycleManager:
         self.install = self._ops_manager.install
         self.remove = self._ops_manager.remove
         self.is_installed = self._ops_manager.is_installed
+        self.version = self._ops_manager.version
         self.connect = self._ops_manager.connect
 
     @cached_property
