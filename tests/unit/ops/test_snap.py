@@ -240,6 +240,14 @@ class TestSnapServiceManager:
         else:
             mock_snap.assert_called_with("restart", "slurm.slurmctld")
 
+    def test_reload(self, service_manager, mock_snap, service_name_is_snap_name) -> None:
+        """Test the `reload` method."""
+        service_manager.reload()
+        if service_name_is_snap_name:
+            mock_snap.assert_called_with("restart", "--reload", "slurmctld")
+        else:
+            mock_snap.assert_called_with("restart", "--reload", "slurm.slurmctld")
+
     @pytest.mark.parametrize(
         "mock_result,installed",
         (
