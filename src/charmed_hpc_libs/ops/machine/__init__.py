@@ -16,6 +16,7 @@
 
 __all__ = [
     # From `apt.py`
+    "AptLifecycleManager",
     "AptOpsManager",
     "apt",
     "dpkg_query",
@@ -33,7 +34,7 @@ __all__ = [
     "is_container",
 ]
 
-from .apt import AptOpsManager, apt, dpkg_query
+from .apt import AptLifecycleManager, AptOpsManager, apt, dpkg_query
 from .nvidia import DCGMManager
 from .snap import SnapConfigManager, SnapLifecycleManager, SnapOpsManager, SnapServiceManager, snap
 from .systemd import SystemctlServiceManager, is_container, systemctl

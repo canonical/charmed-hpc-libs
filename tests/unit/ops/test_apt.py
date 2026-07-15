@@ -21,7 +21,7 @@ import pytest
 from pytest_mock import MockerFixture
 
 from charmed_hpc_libs.errors import AptError
-from charmed_hpc_libs.ops import AptOpsManager, apt, dpkg_query
+from charmed_hpc_libs.ops import AptLifecycleManager, AptOpsManager, apt, dpkg_query
 
 
 def test_apt(mocker: MockerFixture) -> None:
@@ -171,4 +171,38 @@ class TestAptOpsManager:
     def test_update(self, ops_manager, mock_apt) -> None:
         """Test the `update` method."""
         ops_manager.update()
+        mock_apt.assert_called_with("update")
+
+
+class TestAptLifecycleManager:
+    """Test the `AptLifecycleManager` class."""
+
+    @pytest.fixture
+    def lifecycle_manager(self) -> AptLifecycleManager:
+        """Create an `AptLifecycleManager` object."""
+        return AptLifecycleManager("slurm")
+
+    def test_install(self, lifecycle_manager, mock_apt) -> None:
+        """Test the `install` method."""
+        lifecycle_manager.install()
+        mock_apt.assert_has_calls([call("update"), call("install", "-y", "slurm")])
+
+    def test_remove(self, lifecycle_manager, mock_apt) -> None:
+        """Test the `remove` method."""
+        lifecycle_manager.remove()
+        mock_apt.assert_called_with("remove", "-y", "slurm")
+
+    def test_is_installed(self, lifecycle_manager, mock_dpkg_query) -> None:
+        """Test the `is_installed` method."""
+        mock_dpkg_query.return_value = ("", 0)
+        assert lifecycle_manager.is_installed() is True
+
+    def test_version(self, lifecycle_manager, mock_dpkg_query) -> None:
+        """Test the `version` method."""
+        mock_dpkg_query.return_value = ("23.11.7", 0)
+        assert lifecycle_manager.version() == "23.11.7"
+
+    def test_update(self, lifecycle_manager, mock_apt) -> None:
+        """Test the `update` method."""
+        lifecycle_manager.update()
         mock_apt.assert_called_with("update")

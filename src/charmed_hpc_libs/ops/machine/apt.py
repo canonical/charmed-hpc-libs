@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Control `apt-get` and `dpkg-query` in HPC machine charms."""
+"""Control ``apt-get`` and ``dpkg-query`` in HPC machine charms."""
 
 __all__ = [
+    "AptLifecycleManager",
     "AptOpsManager",
     "apt",
     "dpkg_query",
@@ -31,16 +32,16 @@ from .systemd import SystemctlServiceManager
 
 
 def apt(*args: str, **kwargs: Any) -> tuple[str, int]:  # noqa D417
-    """Control Debian/Ubuntu packages using `apt-get ...` commands.
+    """Control Debian/Ubuntu packages using ``apt-get ...`` commands.
 
     Keyword Args:
-        stdin: Standard input to pipe to the `apt-get` command.
+        stdin: Standard input to pipe to the ``apt-get`` command.
         check:
-            If set to `True`, raise an error if the `apt-get` command
+            If set to `True`, raise an error if the ``apt-get`` command
             exits with a non-zero exit code.
 
     Raises:
-        AptError: Raised if an `apt-get` command fails and check is set to `True`.
+        AptError: Raised if an ``apt-get`` command fails and check is set to ``True``.
     """
     env = {**os.environ, "DEBIAN_FRONTEND": "noninteractive"}
     try:
@@ -55,16 +56,16 @@ def apt(*args: str, **kwargs: Any) -> tuple[str, int]:  # noqa D417
 
 
 def dpkg_query(*args: str, **kwargs: Any) -> tuple[str, int]:  # noqa D417
-    """Query `dpkg` for package information using `dpkg-query ...` commands.
+    """Query ``dpkg`` for package information using ``dpkg-query ...`` commands.
 
     Keyword Args:
-        stdin: Standard input to pipe to the `dpkg-query` command.
+        stdin: Standard input to pipe to the ``dpkg-query`` command.
         check:
-            If set to `True`, raise an error if the `dpkg-query` command
+            If set to `True`, raise an error if the ``dpkg-query`` command
             exits with a non-zero exit code.
 
     Raises:
-        AptError: Raised if a `dpkg-query` command fails and check is set to `True`.
+        AptError: Raised if a ``dpkg-query`` command fails and check is set to ``True``.
     """
     try:
         result = call("dpkg-query", *args, **kwargs)
@@ -78,7 +79,7 @@ def dpkg_query(*args: str, **kwargs: Any) -> tuple[str, int]:  # noqa D417
 
 
 class AptOpsManager(OpsManager):
-    """Control the operations of an `apt` package."""
+    """Control the operations of an ``apt`` package."""
 
     def __init__(self, package: str, *, additional_packages: Iterable[str] | None = None) -> None:
         self._package = package
@@ -141,3 +142,18 @@ class AptOpsManager(OpsManager):
             )
 
         return result
+
+
+class AptLifecycleManager:
+    """Manage the full lifecycle operations of an ``apt`` package."""
+
+    def __init__(
+        self, package: str, /, *, additional_packages: Iterable[str] | None = None
+    ) -> None:
+        self._ops_manager = AptOpsManager(package, additional_packages=additional_packages)
+
+        self.update = self._ops_manager.update
+        self.install = self._ops_manager.install
+        self.remove = self._ops_manager.remove
+        self.is_installed = self._ops_manager.is_installed
+        self.version = self._ops_manager.version
