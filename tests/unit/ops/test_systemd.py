@@ -121,6 +121,11 @@ class TestSystemctlServiceManager:
         service_manager.restart()
         mock_systemctl.assert_called_with("restart", "slurmctld")
 
+    def test_reload(self, service_manager, mock_systemctl) -> None:
+        """Test the `reload` method."""
+        service_manager.reload()
+        mock_systemctl.assert_called_with("reload", "slurmctld")
+
     @pytest.mark.parametrize(
         "mock_result,expected",
         (
