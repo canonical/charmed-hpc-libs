@@ -121,10 +121,10 @@ def with_id(request) -> bool:
 
 
 class TestInterface:
-    """Test the `Interface` base class."""
+    """Test the ``Interface`` base class."""
 
     def test_integrations(self, mock_charm, integration_exists) -> None:
-        """Test the `integrations` property."""
+        """Test the ``integrations`` property."""
         with mock_charm(
             mock_charm.on.update_status(),
             state=testing.State(relations={make_integration()} if integration_exists else {}),
@@ -134,7 +134,7 @@ class TestInterface:
         assert len(manager.charm.interface.integrations) == (1 if integration_exists else 0)
 
     def test_get_integration(self, mock_charm, integration_exists) -> None:
-        """Test the `get_integration` method."""
+        """Test the ``get_integration`` method."""
         with mock_charm(
             mock_charm.on.update_status(),
             state=testing.State(relations={make_integration(id=1)} if integration_exists else {}),
@@ -148,7 +148,7 @@ class TestInterface:
                 manager.charm.interface.get_integration()
 
     def test_is_joined(self, mock_charm, integration_exists) -> None:
-        """Test the `is_joined` method."""
+        """Test the ``is_joined`` method."""
         with mock_charm(
             mock_charm.on.update_status(),
             state=testing.State(relations={make_integration()} if integration_exists else {}),
@@ -168,7 +168,7 @@ class TestInterface:
     def test_is_ready(
         self, mock_charm, integration_exists, data_is_available, with_id, expected
     ) -> None:
-        """Test the `is_ready` method."""
+        """Test the ``is_ready`` method."""
         with mock_charm(
             mock_charm.on.update_status(),
             state=testing.State(
@@ -191,7 +191,7 @@ class TestInterface:
         ),
     )
     def test_load_integration_data(self, mock_charm, with_id, target) -> None:
-        """Test loading application data with the `_load_integration_data` method."""
+        """Test loading application data with the ``_load_integration_data`` method."""
         with mock_charm(
             mock_charm.on.update_status(),
             state=testing.State(
@@ -216,7 +216,7 @@ class TestInterface:
         assert data[0].value == "bar"
 
     def test_load_integration_data_invalid_target(self, mock_charm) -> None:
-        """Test that `_load_integration_data` raises an error when given an invalid target."""
+        """Test that ``_load_integration_data`` raises an error when given an invalid target."""
         with mock_charm(
             mock_charm.on.update_status(),
             state=testing.State(relations={make_integration()}),
@@ -241,6 +241,76 @@ class TestInterface:
 
         integration = state.get_relation(1)
         assert integration.local_app_data == {"name": '"foo"', "value": '"bar"'}
+
+    def test_save_merge_preserves_unmodified_fields(self, mock_charm, with_id) -> None:
+        """Test that ``merge=True`` only overwrites fields that differ from their defaults."""
+        with mock_charm(
+            mock_charm.on.update_status(),
+            state=testing.State(leader=True, relations={make_integration(id=1)}),
+        ) as manager:
+            manager.charm.interface.save(
+                ExampleData(name="foo", value="bar"),
+                target=manager.charm.app,
+            )
+            manager.charm.interface.save(
+                ExampleData(name="baz"),
+                target=manager.charm.app,
+                integration_id=1 if with_id else None,
+                merge=True,
+            )
+            state = manager.run()
+
+        integration = state.get_relation(1)
+        assert integration.local_app_data == {"name": '"baz"', "value": '"bar"'}
+
+    def test_save_merge_into_empty_databag(self, mock_charm) -> None:
+        """Test that merging into an empty databag preserves unset fields at their defaults."""
+        with mock_charm(
+            mock_charm.on.update_status(),
+            state=testing.State(leader=True, relations={make_integration(id=1)}),
+        ) as manager:
+            manager.charm.interface.save(
+                ExampleData(name="foo"),
+                target=manager.charm.app,
+                merge=True,
+            )
+            state = manager.run()
+
+        integration = state.get_relation(1)
+        assert integration.local_app_data == {"name": '"foo"', "value": '""'}
+
+    def test_save_merge_requires_dataclass(self, mock_charm) -> None:
+        """Test that ``TypeError`` is raised if ``data`` isn't a dataclass and ``merge=True``."""
+        with mock_charm(
+            mock_charm.on.update_status(),
+            state=testing.State(leader=True, relations={make_integration(id=1)}),
+        ) as manager:
+            with pytest.raises(TypeError):
+                manager.charm.interface.save(
+                    "not-a-dataclass",
+                    target=manager.charm.app,
+                    merge=True,
+                )
+            manager.run()
+
+    def test_save_not_merge_overwrites_all_fields(self, mock_charm) -> None:
+        """merge=False (default) overwrites all fields even those set to defaults."""
+        with mock_charm(
+            mock_charm.on.update_status(),
+            state=testing.State(leader=True, relations={make_integration(id=1)}),
+        ) as manager:
+            manager.charm.interface.save(
+                ExampleData(name="foo", value="bar"),
+                target=manager.charm.app,
+            )
+            manager.charm.interface.save(
+                ExampleData(name="baz"),
+                target=manager.charm.app,
+            )
+            state = manager.run()
+
+        integration = state.get_relation(1)
+        assert integration.local_app_data == {"name": '"baz"', "value": '""'}
 
     def test_is_integration_active(self, mock_charm, integration_exists) -> None:
         """Test the `_is_integration_active` static method."""

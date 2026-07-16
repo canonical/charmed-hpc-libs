@@ -16,6 +16,7 @@
 
 __all__ = ["Interface"]
 
+import dataclasses
 from collections.abc import Callable, Iterable
 from typing import Any, Literal
 
@@ -217,6 +218,8 @@ class Interface(ops.Object):
         integration_id: int | None = None,
         *,
         encoder: Callable[[Any], str] | None = None,
+        merge: bool = False,
+        decoder: Callable[[str], Any] | None = None,
     ) -> None:
         """Save integration data.
 
@@ -225,13 +228,48 @@ class Interface(ops.Object):
             target: Location to save object.
             integration_id: ID of integration to update.
             encoder: Callable that will be used to encode each field.
+            merge:
+                Whether to merge data into the integration databag rather than
+                overwriting. When ``True``, only fields whose values differ from
+                their dataclass defaults are written; existing values for unset
+                fields are preserved.
+            decoder:
+                Callable used to decode existing databag data when merging.
+                Only used when ``merge`` is True.
         """
         integrations = self.integrations
         if integration_id is not None:
             integrations = [self.get_integration(integration_id)]
 
+        if not merge:
+            for integration in integrations:
+                integration.save(data, target, encoder=encoder)
+
+            return
+
+        cls = type(data)
+        if not dataclasses.is_dataclass(cls):
+            raise TypeError(f"`merge=True` requires a dataclass instance, got '{cls.__name__}'")
+
+        set_fields = {
+            f.name: getattr(data, f.name)
+            for f in dataclasses.fields(cls)
+            if not self._field_is_default(f, getattr(data, f.name))
+        }
+
         for integration in integrations:
-            integration.save(data, target, encoder=encoder)
+            existing = integration.load(cls, target, decoder=decoder)
+            merged = dataclasses.replace(existing, **set_fields)
+            integration.save(merged, target, encoder=encoder)
+
+    @staticmethod
+    def _field_is_default(field: dataclasses.Field, value: Any) -> bool:
+        """Check if a field value is equal to its declared default."""
+        if field.default is not dataclasses.MISSING:
+            return value == field.default
+        if field.default_factory is not dataclasses.MISSING:
+            return value == field.default_factory()
+        return False
 
     @staticmethod
     def _is_integration_active(integration: ops.Relation) -> bool:
