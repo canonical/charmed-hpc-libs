@@ -30,12 +30,12 @@ from charmed_hpc_libs.ops import (
 )
 
 
-def service_is_active(_: ops.CharmBase) -> ConditionEvaluation:
+def service_is_active(_: ops.Object) -> ConditionEvaluation:
     return ConditionEvaluation(False, "Waiting for service to start")
 
 
-def unit_is_leader(charm: ops.CharmBase) -> ConditionEvaluation:
-    is_leader = charm.unit.is_leader()
+def unit_is_leader(obj: ops.Object) -> ConditionEvaluation:
+    is_leader = obj.model.unit.is_leader()
     return ConditionEvaluation(is_leader, "Unit is not leader" if not is_leader else "")
 
 
@@ -55,16 +55,32 @@ def post_handler_checks(charm: ops.CharmBase) -> ops.StatusBase:
     return ops.ActiveStatus()
 
 
-class MockCharm(ops.CharmBase):
-    """Mock charm for testing the conditions pattern."""
+class MockDatabaseObserver(ops.Object):
+    """Mock ``integrations`` observer."""
 
-    def __init__(self, framework: ops.Framework) -> None:
-        super().__init__(framework)
+    def __init__(self, charm: "MockCharm", integration_name: str) -> None:
+        super().__init__(charm, f"{type(self).__name__}")
 
-        framework.observe(self.on.install, self._on_install)
-        framework.observe(self.on.config_changed, self._on_config_changed)
-        framework.observe(self.on.update_status, self._on_update_status)
-        framework.observe(self.on["database"].relation_created, self._on_database_relation_created)
+        self.charm = charm
+        self.framework.observe(
+            self.charm.on[integration_name].relation_created, self._on_database_relation_created
+        )
+
+    @refresh(hook=None)
+    @wait_unless(service_is_active)
+    def _on_database_relation_created(self, _: ops.RelationCreatedEvent) -> None: ...
+
+
+class MockLifecycleObserver(ops.Object):
+    """Mock ``operations`` observer."""
+
+    def __init__(self, charm: "MockCharm") -> None:
+        super().__init__(charm, f"{type(self).__name__}")
+        self.charm = charm
+
+        self.framework.observe(self.charm.on.install, self._on_install)
+        self.framework.observe(self.charm.on.config_changed, self._on_config_changed)
+        self.framework.observe(self.charm.on.update_status, self._on_update_status)
 
     @refresh(hook=None)
     @block_unless(unit_is_leader)
@@ -73,14 +89,20 @@ class MockCharm(ops.CharmBase):
     @leader
     @block_unless(unit_is_leader)  # Ensure that `leader` is called before `block_unless`.
     def _on_config_changed(self, _: ops.ConfigChangedEvent) -> None:
-        self.unit.status = ops.MaintenanceStatus("Leader is updating settings")
+        self.charm.unit.status = ops.MaintenanceStatus("Leader is updating settings")
 
     @refresh(hook=post_handler_checks)
     def _on_update_status(self, _: ops.UpdateStatusEvent) -> None: ...
 
-    @refresh(hook=None)
-    @wait_unless(service_is_active)
-    def _on_database_relation_created(self, _: ops.RelationCreatedEvent) -> None: ...
+
+class MockCharm(ops.CharmBase):
+    """Mock charm for testing the conditions pattern."""
+
+    def __init__(self, framework: ops.Framework) -> None:
+        super().__init__(framework)
+
+        self.lifecycle_observer = MockLifecycleObserver(self)
+        self.database_observer = MockDatabaseObserver(self, "database")
 
 
 @pytest.fixture(scope="function")
@@ -137,13 +159,15 @@ def test_refresh(mock_charm) -> None:
     assert state.unit_status == ops.BlockedStatus("Waiting for integrations: [`metrics-server`]")
 
 
-class AppStatusCharm(ops.CharmBase):
-    """Mock charm for testing `StopCharm` app status propagation."""
+class MockAppStatusObserver(ops.Object):
+    """Mock observer for testing that observers can set app statuses."""
 
-    def __init__(self, framework: ops.Framework) -> None:
-        super().__init__(framework)
-        framework.observe(self.on.install, self._on_install)
-        framework.observe(self.on.start, self._on_start)
+    def __init__(self, charm: "MockAppStatusCharm") -> None:
+        super().__init__(charm, f"{type(self).__name__}")
+
+        self._charm = charm
+        self.framework.observe(self._charm.on.install, self._on_install)
+        self.framework.observe(self._charm.on.start, self._on_start)
 
     @refresh(hook=None)
     def _on_install(self, _: ops.InstallEvent) -> None:
@@ -154,9 +178,18 @@ class AppStatusCharm(ops.CharmBase):
         raise StopCharm(ops.BlockedStatus("blocked for unit only"))
 
 
+class MockAppStatusCharm(ops.CharmBase):
+    """Mock charm for testing `StopCharm` app status propagation."""
+
+    def __init__(self, framework: ops.Framework) -> None:
+        super().__init__(framework)
+
+        self.lifecycle_observer = MockAppStatusObserver(self)
+
+
 @pytest.fixture(scope="function")
-def app_status_charm() -> testing.Context[AppStatusCharm]:
-    return testing.Context(AppStatusCharm, meta={"name": "app-status-charm"})
+def app_status_charm() -> testing.Context[MockAppStatusCharm]:
+    return testing.Context(MockAppStatusCharm, meta={"name": "app-status-charm"})
 
 
 @pytest.mark.parametrize("is_leader", (True, False))
