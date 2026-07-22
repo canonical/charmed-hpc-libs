@@ -44,7 +44,7 @@ class ConditionEvaluation(NamedTuple):  # noqa D101
     message: str = ""
 
 
-type Condition[T: ops.CharmBase] = Callable[[T], ConditionEvaluation]
+type Condition[T: ops.Object] = Callable[[T], ConditionEvaluation]
 
 
 class StopCharm(Exception):  # noqa N818
@@ -65,7 +65,7 @@ class StopCharm(Exception):  # noqa N818
         return f"StopCharm({self.status!r}, set_app_status={self.set_app_status!r})"
 
 
-def refresh[T: ops.CharmBase](hook: Callable[[T], ops.StatusBase] | None = None) -> Callable:
+def refresh[T: ops.Object](hook: Callable[[T], ops.StatusBase] | None = None) -> Callable:
     """Refresh a charm's status after running an event handler.
 
     Args:
@@ -74,11 +74,11 @@ def refresh[T: ops.CharmBase](hook: Callable[[T], ops.StatusBase] | None = None)
 
     def decorator(func: Callable[..., None]) -> Callable:
         @wraps(func)
-        def wrapper(charm: T, *args: ops.EventBase, **kwargs: Any) -> None:
+        def wrapper(obj: T, *args: ops.EventBase, **kwargs: Any) -> None:
             event, *_ = args
 
             try:
-                func(charm, *args, **kwargs)
+                func(obj, *args, **kwargs)
             except StopCharm as e:
                 _logger.debug(
                     (
@@ -86,15 +86,15 @@ def refresh[T: ops.CharmBase](hook: Callable[[T], ops.StatusBase] | None = None)
                         "on unit '%s'. setting unit status to `%s`",
                     ),
                     event.__class__.__name__,
-                    charm.__class__.__name__,
+                    obj.__class__.__name__,
                     func.__name__,
-                    charm.unit.name,  # type: ignore
+                    obj.model.unit.name,
                     e.status,
                 )
-                charm.unit.status = e.status
+                obj.model.unit.status = e.status
                 if e.set_app_status:
                     try:
-                        charm.app.status = e.status  # type: ignore
+                        obj.model.app.status = e.status
                         _logger.debug(
                             "setting app status to `%s`",
                             e.status,
@@ -107,15 +107,15 @@ def refresh[T: ops.CharmBase](hook: Callable[[T], ops.StatusBase] | None = None)
                 _logger.debug(
                     "running status check function `%s` to determine new status for unit '%s'",
                     hook.__name__,
-                    charm.unit.name,  # type: ignore
+                    obj.model.unit.name,
                 )
-                status = hook(charm)
+                status = hook(obj)
                 _logger.debug(
                     "new status for unit '%s' determined to be `%s`",
-                    charm.unit.name,  # type: ignore
+                    obj.model.unit.name,
                     status,
                 )
-                charm.unit.status = status
+                obj.model.unit.status = status
 
         return wrapper
 
@@ -126,28 +126,28 @@ def leader(func: Callable[..., Any]) -> Callable[..., Any]:
     """Only run method if the unit is the application leader, otherwise skip."""
 
     @wraps(func)
-    def wrapper(charm: ops.CharmBase, *args: Any, **kwargs: Any) -> Any:
-        if not charm.unit.is_leader():
+    def wrapper(obj: ops.Object, *args: Any, **kwargs: Any) -> Any:
+        if not obj.model.unit.is_leader():
             _logger.debug(
                 (
                     "unit '%s' is not the leader of the '%s' application, ",
                     "skipping run of method `%s.%s`",
                 ),
-                charm.unit.name,
-                charm.app.name,
-                charm.__class__.__name__,
+                obj.model.unit.name,
+                obj.model.app.name,
+                obj.__class__.__name__,
                 func.__name__,
             )
             return None
 
         _logger.debug(
             "unit '%s' is the leader of the '%s' application, running method `%s.%s`",
-            charm.unit.name,
-            charm.app.name,
-            charm.__class__.__name__,
+            obj.model.unit.name,
+            obj.model.app.name,
+            obj.__class__.__name__,
             func.__name__,
         )
-        return func(charm, *args, **kwargs)
+        return func(obj, *args, **kwargs)
 
     return wrapper
 
@@ -159,8 +159,8 @@ def integration_exists(name: str) -> Condition:
         name: Name of integration to check existence of.
     """
 
-    def wrapper(charm: ops.CharmBase) -> ConditionEvaluation:
-        return ConditionEvaluation(bool(charm.model.relations.get(name)), "")
+    def wrapper(obj: ops.Object) -> ConditionEvaluation:
+        return ConditionEvaluation(bool(obj.model.relations.get(name)), "")
 
     return wrapper
 
@@ -172,8 +172,8 @@ def integration_not_exists(name: str) -> Condition:
         name: Name of integration to check existence of.
     """
 
-    def wrapper(charm: ops.CharmBase) -> ConditionEvaluation:
-        not_exists = not bool(charm.model.relations.get(name))
+    def wrapper(obj: ops.Object) -> ConditionEvaluation:
+        not_exists = not bool(obj.model.relations.get(name))
         return ConditionEvaluation(
             not_exists, f"Waiting for integrations: [`{name}`]" if not_exists else ""
         )
@@ -193,12 +193,12 @@ def _status_unless(*conditions: Condition, status: type[ops.StatusBase]) -> Call
 
     def decorator(func: Callable[..., Any]):
         @wraps(func)
-        def wrapper(charm: ops.CharmBase, *args: ops.EventBase, **kwargs: Any) -> Any:
+        def wrapper(obj: ops.Object, *args: ops.EventBase, **kwargs: Any) -> Any:
             event, *_ = args
-            _logger.debug("handling event `%s` on %s", event, charm.unit.name)
+            _logger.debug("handling event `%s` on %s", event, obj.model.unit.name)
 
             for condition in conditions:
-                ok, message = condition(charm)
+                ok, message = condition(obj)
                 if not ok:
                     _logger.debug(
                         (
@@ -207,14 +207,14 @@ def _status_unless(*conditions: Condition, status: type[ops.StatusBase]) -> Call
                         ),
                         condition.__name__,
                         event,
-                        charm.unit.name,
+                        obj.model.unit.name,
                         status.__name__,
                         message,
                     )
                     event.defer()
                     raise StopCharm(status(message))
 
-            return func(charm, *args, **kwargs)
+            return func(obj, *args, **kwargs)
 
         return wrapper
 
