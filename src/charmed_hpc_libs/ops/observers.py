@@ -17,6 +17,7 @@
 __all__ = ["ConfigObserver", "Observer"]
 
 import logging
+from typing import Any
 
 import ops
 from pydantic import ValidationError
@@ -41,11 +42,21 @@ class Observer(ops.Object):
 
 
 class ConfigObserver[T](Observer):
-    """Observe charm application configuration data set with ``juju config``."""
+    """Observe charm application configuration data set with ``juju config``.
 
-    def __init__(self, charm: _CharmType, config_cls: type[T]) -> None:
+    Args:
+        config_cls:
+            The configuration class that will accept the charm application's
+            configuration option values.
+        args: Positional arguments to passthrough to ``config_cls`` when it is loaded.
+        kwargs: Keyword arguments to passthrough to ``config_cls`` when it is loaded.
+    """
+
+    def __init__(self, charm: _CharmType, config_cls: type[T], *args: Any, **kwargs: Any) -> None:
         super().__init__(charm)
         self._config_cls = config_cls
+        self._passthrough_args = args or []
+        self._passthrough_kwargs = kwargs or {}
 
     def load(self) -> T:
         """Load charm application configuration data.
@@ -54,7 +65,11 @@ class ConfigObserver[T](Observer):
             StopCharm: Raised if the charm's application configuration fails validation.
         """
         try:
-            return self._charm.load_config(self._config_cls)
+            return self._charm.load_config(
+                self._config_cls,
+                *self._passthrough_args,
+                **self._passthrough_kwargs,
+            )
         except ValidationError as e:
             failed_options = sorted({error["loc"][0] for error in e.errors() if error.get("loc")})
             message = (
