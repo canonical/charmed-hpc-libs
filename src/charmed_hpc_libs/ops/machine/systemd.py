@@ -95,6 +95,10 @@ class SystemctlServiceManager(ServiceManager):
         """Reload service."""
         systemctl("reload", self._service)
 
+    def reload_or_restart(self) -> None:
+        """Reload or restart service."""
+        systemctl("reload-or-restart", self._service)
+
     def is_active(self) -> bool:
         """Check if service is active."""
         _, exit_code = systemctl("is-active", "--quiet", self._service, check=False)
