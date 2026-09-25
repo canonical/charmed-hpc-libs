@@ -12,11 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# enables the `which` function which doesn't throw if a tool doesn't exist.
-set unstable
-
 uv := require("uv")
-gambol := which("gambol")
 
 project_dir := justfile_directory()
 tests_dir := project_dir / "tests"
