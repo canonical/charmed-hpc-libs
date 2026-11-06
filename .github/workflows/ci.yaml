@@ -46,7 +46,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install Just
-        uses: extractions/setup-just@v2
+        uses: extractions/setup-just@v4
         with:
           just-version: 1.39.0
       - name: Install uv
@@ -63,7 +63,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install Just
-        uses: extractions/setup-just@v2
+        uses: extractions/setup-just@v4
         with:
           just-version: 1.39.0
       - name: Install uv
@@ -80,7 +80,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install Just
-        uses: extractions/setup-just@v2
+        uses: extractions/setup-just@v4
         with:
           just-version: 1.39.0
       - name: Install uv
